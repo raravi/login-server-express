@@ -2,6 +2,7 @@
   "name": "login-server-express",
   "version": "1.0.0",
   "description": "An Express application for the Login Server",
+  "repository": "https://github.com/raravi/login-server-express.git",
   "main": "app.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
