@@ -14,9 +14,9 @@ This module gives the Express backend server for the LOGIN functionality. It ret
 ## CORS
 
 CORS is setup with:
-* Access-Control-Allow-Origin: Allows `http://localhost:3000` & `process.env.APP_CLIENTURL`.
-* Access-Control-Allow-Methods: `GET` / `POST` are allowed.
-* Access-Control-Allow-Credentials: set to `TRUE` (needed for sending `AUTHORIZATION` header).
+* **Access-Control-Allow-Origin**: Allows `http://localhost:3000` & `process.env.APP_CLIENTURL`.
+* **Access-Control-Allow-Methods**: `GET` / `POST` are allowed.
+* **Access-Control-Allow-Credentials**: set to `TRUE` (needed for sending `AUTHORIZATION` header).
 
 ## Rate Limiter
 
@@ -34,13 +34,13 @@ The Reset Password API endpoint will send out a mail if the details provided are
 
 These variables should be stored in Environment Variables, and will be accessible to the module in the form `process.env.APP_DB`. Node.js platform will do this by default.
 
-* APP_DB: The MongoDB URI used to connect to the DB.
-* APP_SECRETORKEY: A Secret key for generating random strings to be used as JWTs (JSON Web Tokens).
-* APP_EMAIL: Email from which you want to send mail.
-* APP_PASSWORD: Password for the above APP_EMAIL.
-* APP_RESETEMAIL: The Email that is displayed in the 'From' field in the mail sent.
-* APP_RESETLINK: Link to reset password. For e.g., https://www.myapp.com/resetpassword
-* APP_CLIENTURL: The URL of your Client application which will connect to this server. For e.g., https://www.myapp.com
+* **APP_DB**: The MongoDB URI used to connect to the DB.
+* **APP_SECRETORKEY**: A Secret key for generating random strings to be used as JWTs (JSON Web Tokens).
+* **APP_EMAIL**: Email from which you want to send mail.
+* **APP_PASSWORD**: Password for the above APP_EMAIL.
+* **APP_RESETEMAIL**: The Email that is displayed in the 'From' field in the mail sent.
+* **APP_RESETLINK**: Link to reset password. For e.g., https://www.myapp.com/resetpassword
+* **APP_CLIENTURL**: The URL of your Client application which will connect to this server. For e.g., https://www.myapp.com
 
 ## Usage
 
