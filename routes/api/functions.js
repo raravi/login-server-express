@@ -54,6 +54,7 @@ const register = (req, res) => {
             console.error('bcrypt hashing error: ', err);
             return res.status(404).json({email: "There was a problem, please try again!"});
           }
+          // TODO: If your web site supports email/password account creation, always validate that email address before sending further email correspondence (or God forbid, sharing your customer list.) Nobody likes being the target of trolls or bots that sign up your email address to hundreds of web sites that then proceed to send newsletters every day. Always have a validation process for email addresses. It seems like this should go without saying, but so many sites still don't do this.
           newUser.password = hash;
           newUser
             .save()
