@@ -8,8 +8,9 @@ This module gives the Express backend server for the LOGIN functionality. It ret
 
 1. `/login`: For login of users.
 2. `/register`: To register new users.
-3. `/forgotpassword`: To send a reset mail to the registered email address of the user.
-4. `/resetpassword`: To handle reset password functionality.
+3. `/validate`: To validate the email of new users.
+4. `/forgotpassword`: To send a reset mail to the registered email address of the user.
+5. `/resetpassword`: To handle reset password functionality.
 
 ## CORS
 
@@ -30,6 +31,10 @@ Connect to MongoDB using Mongoose by specifying the Database in `process.env.APP
 
 The Reset Password API endpoint will send out a mail if the details provided are correct. It uses `process.env.APP_EMAIL`, `process.env.APP_PASSWORD`, `process.env.APP_RESETEMAIL` & `process.env.APP_RESETLINK`.
 
+## User's Email Validation Mail
+
+The Register API endpoint will send out a validation mail if the details provided are correct. It uses `process.env.APP_EMAIL`, `process.env.APP_PASSWORD`, `process.env.APP_RESETEMAIL` & `process.env.APP_VALIDATIONLINK`.
+
 ## Environment Variables expected by the module
 
 These variables should be stored in Environment Variables, and will be accessible to the module in the form `process.env.APP_DB`. Node.js platform will do this by default.
@@ -39,7 +44,8 @@ These variables should be stored in Environment Variables, and will be accessibl
 * **APP_EMAIL**: Email from which you want to send mail.
 * **APP_PASSWORD**: Password for the above APP_EMAIL.
 * **APP_RESETEMAIL**: The Email that is displayed in the 'From' field in the mail sent.
-* **APP_RESETLINK**: Link to reset password. For e.g., https://www.myapp.com/resetpassword
+* **APP_RESETLINK**: Link to reset password. For e.g., https://www.myapp.com/reset-password
+* **APP_VALIDATIONLINK**: Link to validate email for a new user. For e.g., https://www.myapp.com/validate-email
 * **APP_CLIENTURL**: The URL of your Client application which will connect to this server. For e.g., https://www.myapp.com
 
 ## Usage
