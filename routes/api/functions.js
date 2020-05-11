@@ -10,11 +10,13 @@ keys.email = process.env.APP_EMAIL;
 keys.password = process.env.APP_PASSWORD;
 keys.resetEmail = process.env.APP_RESETEMAIL;
 keys.resetLink = process.env.APP_RESETLINK;
+keys.validateLink = process.env.APP_VALIDATELINK;
 
 /**
  * Load input validation
  */
 const validateRegisterInput = require("../../validation/register");
+const validateValidateEmailInput = require("../../validation/validateemail");
 const validateLoginInput = require("../../validation/login");
 const validateForgotPasswordInput = require("../../validation/forgotpassword");
 const validateResetPasswordInput = require("../../validation/resetpassword");
@@ -44,7 +46,8 @@ const register = (req, res) => {
       const newUser = new User({
         name: req.body.name,
         email: req.body.email,
-        password: req.body.password
+        password: req.body.password,
+        validated: false
       });
       // Hash password before saving in database
       // The top result on Google, the tutorial from scotch.io, also uses bcrypt with a lesser cost factor of 8. Both of these are small, but 8 is really small. Most bcrypt libraries these days use 12. The cost factor of 8 was for administrator accounts eighteen years ago when the original bcrypt paper was released.
@@ -58,7 +61,41 @@ const register = (req, res) => {
           newUser.password = hash;
           newUser
             .save()
-            .then(user => res.json({createduser: "New user registered successfully!"}))
+            .then(user => {
+              // Generate random string
+              const randomString = crypto.randomBytes(16).toString('hex');
+
+              const transporter = nodemailer.createTransport({
+                service: 'gmail',
+                auth: {
+                  user: keys.email,
+                  pass: keys.password,
+                },
+              });
+
+              const mailOptions = {
+                from: '${keys.resetEmail}',
+                to: `${user.email}`,
+                subject: 'Email Validation is Required',
+                text:
+                  'You are receiving this because you (or someone else) have recently created your account.\n\n'
+                  + 'Please click on the following link, or paste this into your browser to complete the registration process:\n\n'
+                  + `${keys.validateLink}\n\n`
+                  + `Validation Code: ${randomString}\n\n`
+                  + 'If you did not request this, please ignore this email and no action will be taken.\n',
+              };
+
+              // Send mail
+              transporter.sendMail(mailOptions)
+                .then(response => {
+                  console.log('sendMail success: ', response);
+                  res.json({createduser: "New user registered successfully, please validate your email before trying to login!"})
+                })
+                .catch(err => {
+                  console.error('sendMail error: ', err);
+                  res.status(404).json({email: "The validation email couldn't be sent, please try again!"});
+                });
+            })
             .catch(err => {
               console.log('MongoDB new user save error: ', err);
               res.status(404).json({email: "There was a problem, please try again!"});
@@ -66,6 +103,41 @@ const register = (req, res) => {
         });
       });
     }
+  });
+};
+
+/**
+ * This function handles "Validate Email" functionality of the user.
+ * Checks if the details provided are correct, then validates the email
+ * of the user. If the details are wrong, throws relevant errors.
+ */
+const validate = (req, res) => {
+  // Form validation
+  const { errors, isValid } = validateValidateEmailInput(req.body);
+  // Check validation
+  if (!isValid) {
+    return res.status(400).json(errors);
+  }
+  const validateCode = req.body.validatecode;
+  // Find user by email
+  User.findOne({ validateEmailToken: validateCode }).then(user => {
+    // Check if user exists
+    if (!user) {
+      return res.status(404).json({ validatecode: "Validation code is invalid" });
+    }
+
+    user.validated = true;
+    user.validateEmailToken = undefined;
+
+    // save the user to DB
+    user.save()
+      .then(user => {
+        return res.json({success: "Email has been successfully validated!"});
+      })
+      .catch(err => {
+        console.log("MongoDB save error: ", err);
+        return res.status(400).json({validatecode: "Email couldn't be validated, please try again!"});
+      });
   });
 };
 
@@ -88,6 +160,9 @@ const login = (req, res) => {
     // Check if user exists
     if (!user) {
       return res.status(404).json({ email: "Email not found" });
+    }
+    if (user.validated === false) {
+      return res.status(404).json({ email: "Email not validated yet" });
     }
     // Check password
     bcrypt.compare(password, user.password).then(isMatch => {
@@ -262,5 +337,6 @@ const resetPassword = (req, res) => {
 
 module.exports = {  login,
                     register,
+                    validate,
                     forgotPassword,
                     resetPassword };

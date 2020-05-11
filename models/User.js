@@ -21,6 +21,13 @@ const UserSchema = new Schema({
     type: Date,
     default: Date.now
   },
+  validated: {
+    type: Boolean,
+    required: true
+  },
+  validateEmailToken: {
+    type: String
+  },
   resetPasswordToken: {
     type: String
   },

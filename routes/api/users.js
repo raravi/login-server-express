@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const { login,
         register,
+        validate,
         forgotPassword,
         resetPassword } = require("./functions");
 
@@ -11,6 +12,13 @@ const { login,
  * @access Public
  */
 router.post("/register", register);
+
+/**
+ * @route POST api/users/validate
+ * @desc Validate email of user
+ * @access Public
+ */
+router.post("/validate", validate);
 
 /**
  * @route POST api/users/login
