@@ -33,7 +33,7 @@ The Reset Password API endpoint will send out a mail if the details provided are
 
 ## User's Email Validation Mail
 
-The Register API endpoint will send out a validation mail if the details provided are correct. It uses `process.env.APP_EMAIL`, `process.env.APP_PASSWORD`, `process.env.APP_RESETEMAIL` & `process.env.APP_VALIDATIONLINK`.
+The Register API endpoint will send out a validation mail if the details provided are correct. It uses `process.env.APP_EMAIL`, `process.env.APP_PASSWORD`, `process.env.APP_RESETEMAIL` & `process.env.APP_VALIDATELINK`.
 
 ## Environment Variables expected by the module
 
