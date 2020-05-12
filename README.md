@@ -45,7 +45,7 @@ These variables should be stored in Environment Variables, and will be accessibl
 * **APP_PASSWORD**: Password for the above APP_EMAIL.
 * **APP_RESETEMAIL**: The Email that is displayed in the 'From' field in the mail sent.
 * **APP_RESETLINK**: Link to reset password. For e.g., https://www.myapp.com/reset-password
-* **APP_VALIDATIONLINK**: Link to validate email for a new user. For e.g., https://www.myapp.com/validate-email
+* **APP_VALIDATELINK**: Link to validate email for a new user. For e.g., https://www.myapp.com/validate-email
 * **APP_CLIENTURL**: The URL of your Client application which will connect to this server. For e.g., https://www.myapp.com
 
 ## Usage

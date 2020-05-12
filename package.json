@@ -1,6 +1,6 @@
 {
   "name": "login-server-express",
-  "version": "1.1.5",
+  "version": "1.1.6",
   "description": "An Express application for the Login Server",
   "repository": "https://github.com/raravi/login-server-express.git",
   "main": "app.js",
