@@ -28,8 +28,16 @@ const mockDateCreated = new Date("2020-03-03T22:39:32.371Z"),
 let registerData = {
       api: '/api/users/register',
       json: null,
-      success: 'New user registered successfully!',
-      error: 'There was a problem, please try again!'
+      success: 'New user registered successfully, please validate your email before trying to login!',
+      error: 'There was a problem, please try again!',
+      emailError: "The validation email couldn't be sent, please try again!"
+    },
+    validateEmailData = {
+      api: '/api/users/validate',
+      json: null,
+      resolve: null,
+      success: 'Email has been successfully validated!',
+      error: "Email couldn't be validated, please try again!",
     },
     loginData = {
       api: '/api/users/login',
@@ -62,6 +70,7 @@ let registerData = {
     validationData = {
       emailExists: 'Email already exists',
       emailNotFound: 'Email not found',
+      emailNotValidated: 'Email not validated yet',
       emailRequired: 'Email field is required',
       emailInvalid: 'Email is invalid',
       nameRequired: 'Name field is required',
@@ -73,6 +82,8 @@ let registerData = {
       resetCodeExpired: 'Reset code has expired',
       resetCodeInvalid: 'Reset code is invalid',
       resetCodeRequired: 'Reset code is required',
+      validateCodeRequired: 'Validation code is required',
+      validateCodeInvalid: 'Validation code is invalid',
     },
     errorData = {
       simpleError: { error: "Error" }
@@ -103,6 +114,12 @@ describe('POST /register', function() {
   });
 
   it('success: new user registered successfully', function(done) {
+    // Without this stub, mail is sent every time!
+    const transporter = sinon.stub(nodemailer, 'createTransport');
+    transporter.returns({
+      sendMail: (mailOptions) => Promise.resolve(forgotPasswordData.sendMailResolve)
+    });
+
     chai.request(app)
       .post(registerData.api)
       .set('Accept', 'application/json')
@@ -118,6 +135,33 @@ describe('POST /register', function() {
         .catch(err => {
           console.log("    User delete failed!", err);
         });
+        nodemailer.createTransport.restore();
+        done();
+      });
+  });
+
+  it('error: email sending failed', function(done) {
+    const userSave = sinon.stub(User.prototype, 'save');
+    userSave.resolves(forgotPasswordData.resolve);
+    // Without this stub, mail is sent every time!
+    const transporter = sinon.stub(nodemailer, 'createTransport');
+    transporter.returns({
+      sendMail: (mailOptions) => Promise.reject({
+        error: "Email couldn't be sent"
+      })
+    });
+
+    chai.request(app)
+      .post(registerData.api)
+      .set('Accept', 'application/json')
+      .send(registerData.json)
+      .end(function(error, response) {
+        expect(error).to.be.null;
+        expect(response).to.have.status(404);
+        expect(response).to.be.json;
+        expect(response.body.email).to.equal(registerData.emailError);
+        nodemailer.createTransport.restore();
+        User.prototype.save.restore();
         done();
       });
   });
@@ -289,6 +333,103 @@ describe('POST /register', function() {
 });
 
 /**
+ * Tests for the VALIDATE endpoint.
+ */
+describe('POST /validate', function() {
+  beforeEach(function() {
+    validateEmailData.json = {
+      "validatecode": "aQ2aKX8a7rGjiE"
+    };
+    validateEmailData.resolve = {
+      _id: '5e5edca43aa9dc587503e1b4',
+      name: 'Amith Raravi',
+      email: 'amith.raravi@gmail.com',
+      password: '$2a$12$.TdDUPO04ICoSdHmVy90x.rBptpYykbAFd4bTqxrEuutJQR2zjV5K',
+      date: mockDateCreated,
+      __v: 0,
+      resetPasswordExpires: mockDateFuture,
+      resetPasswordToken: '$2a$12$5z5/4rfoZHi7y4nrtvtHzuWgA8d9UnCLQpydhHLvm3hS.gpo9akkW'
+    };
+  });
+
+  it('success: Email validated successfully', function(done) {
+    let userFindOneResolve = {
+      validated: false
+    };
+    userFindOneResolve.save = () => Promise.resolve(validateEmailData.resolve);
+    const userFindOne = sinon.stub(User, 'findOne');
+    userFindOne.resolves(userFindOneResolve);
+
+    chai.request(app)
+      .post(validateEmailData.api)
+      .set('Accept', 'application/json')
+      .send(validateEmailData.json)
+      .end(function(error, response) {
+        expect(error).to.be.null;
+        expect(response).to.have.status(200);
+        expect(response).to.be.json;
+        expect(response.body.success).to.equal(validateEmailData.success);
+        User.findOne.restore();
+        done();
+      });
+  });
+
+  it('error: validate code is invalid', function(done) {
+    validateEmailData.json.validatecode = "aaaaaaaaaaaaaaaa";
+
+    chai.request(app)
+      .post(validateEmailData.api)
+      .set('Accept', 'application/json')
+      .send(validateEmailData.json)
+      .end(function(error, response) {
+        expect(error).to.be.null;
+        expect(response).to.have.status(404);
+        expect(response).to.be.json;
+        expect(response.body.validatecode).to.equal(validationData.validateCodeInvalid);
+        done();
+      });
+  });
+
+  it('error: MongoDB Save error', function(done) {
+    let userFindOneResolve = {
+      validated: false
+    };
+    userFindOneResolve.save = () => Promise.reject(errorData.simpleError);
+    const userFindOne = sinon.stub(User, 'findOne');
+    userFindOne.resolves(userFindOneResolve);
+
+    chai.request(app)
+      .post(validateEmailData.api)
+      .set('Accept', 'application/json')
+      .send(validateEmailData.json)
+      .end(function(error, response) {
+        expect(error).to.be.null;
+        expect(response).to.have.status(400);
+        expect(response).to.be.json;
+        expect(response.body.validatecode).to.equal(validateEmailData.error);
+        User.findOne.restore();
+        done();
+      });
+  });
+
+  it('validation error: validate code is empty', function(done) {
+    validateEmailData.json.validatecode = "";
+
+    chai.request(app)
+      .post(validateEmailData.api)
+      .set('Accept', 'application/json')
+      .send(validateEmailData.json)
+      .end(function(error, response) {
+        expect(error).to.be.null;
+        expect(response).to.have.status(400);
+        expect(response).to.be.json;
+        expect(response.body.validatecode).to.equal(validationData.validateCodeRequired);
+        done();
+      });
+  });
+});
+
+/**
  * Tests for the LOGIN endpoint.
  */
 describe('POST /login', function() {
@@ -330,6 +471,27 @@ describe('POST /login', function() {
         expect(response).to.have.status(404);
         expect(response).to.be.json;
         expect(response.body.email).to.equal(validationData.emailNotFound);
+        done();
+      });
+  });
+
+  it('error: user not validated', function(done) {
+    let userFindOneResolve = {
+      validated: false
+    };
+    const userFindOne = sinon.stub(User, 'findOne');
+    userFindOne.resolves(userFindOneResolve);
+
+    chai.request(app)
+      .post(loginData.api)
+      .set('Accept', 'application/json')
+      .send(loginData.json)
+      .end(function(error, response) {
+        expect(error).to.be.null;
+        expect(response).to.have.status(404);
+        expect(response).to.be.json;
+        expect(response.body.email).to.equal(validationData.emailNotValidated);
+        User.findOne.restore();
         done();
       });
   });
