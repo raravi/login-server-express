@@ -51,3 +51,5 @@ These variables should be stored in Environment Variables, and will be accessibl
 ## Usage
 
 For a demo, check out the [repo](https://github.com/raravi/notes-server-lambda) of my Notes App!
+
+[![ko-fi](https://www.ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/Y8Y21VCIL)
